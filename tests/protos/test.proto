@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+package test;
+
+message User {
+    int64 id = 1;
+    string username = 2;
+    string name = 3;
+}
+
+message GetPayload {
+    int64 id = 1;
+}
+
+message Empty {}
+
+service TestService {
+    rpc GetUser (GetPayload) returns (User);
+    rpc ListUsers (Empty) returns (stream User);
+}
