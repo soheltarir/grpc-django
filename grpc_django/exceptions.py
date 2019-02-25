@@ -4,6 +4,13 @@ import grpc
 from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned, ValidationError as DjangoValidationError
 
 
+class GrpcServerStartError(Exception):
+    """
+    Failed to start the GRPC server
+    """
+    pass
+
+
 class GrpcException(Exception):
     """
     Base class for GRPC exceptions
