@@ -31,7 +31,7 @@ class GenericGrpcView(object):
     @staticmethod
     def get_user(context):
         from .settings import settings
-        user_json = json.loads(dict(context.invocation_metadata()).get(settings.auth_user_metakey, "{}"))
+        user_json = json.loads(dict(context.invocation_metadata()).get(settings.auth_user_meta_key, "{}"))
         if user_json is None or len(user_json) == 0:
             return AnonymousUser()
         else:

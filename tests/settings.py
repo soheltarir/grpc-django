@@ -11,10 +11,9 @@ https://docs.djangoproject.com/en/2.0/ref/settings/
 """
 
 import os
+from grpc_django import GRPCSettings, GRPCService, GRPCServer
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
-from test_pb2_grpc import add_TestServiceServicer_to_server, TestServiceServicer
-
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
@@ -123,6 +122,10 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 
-GRPC_SERVICES = [
-    (add_TestServiceServicer_to_server, TestServiceServicer, "tests.rpcs")
-]
+GRPC_SETTINGS = GRPCSettings(
+    services=[
+        GRPCService('TestService', 'test', 'tests/protos/test.proto', 'tests.rpcs', 'tests.grpc_codegen')
+    ],
+    server=GRPCServer(port=55000, num_of_workers=3),
+    auth_user_key='user'
+)
