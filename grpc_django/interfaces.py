@@ -36,7 +36,7 @@ class IServer:
         self.port = port if port else self.DEFAULT_SERVER_PORT
 
         if num_of_workers and type(num_of_workers) != int:
-            raise TypeError("Invalid pnum_of_workers provided, should be int")
+            raise TypeError("Invalid num_of_workers provided, should be int")
         self.num_of_workers = num_of_workers if num_of_workers else self.DEFAULT_WORKER_COUNT
 
 
