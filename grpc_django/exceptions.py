@@ -4,6 +4,13 @@ import grpc
 from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned, ValidationError as DjangoValidationError
 
 
+class GrpcServerStartError(Exception):
+    """
+    Failed to start the GRPC server
+    """
+    pass
+
+
 class GrpcException(Exception):
     """
     Base class for GRPC exceptions
@@ -57,6 +64,7 @@ class ExceptionHandler(object):
         self.context = context
 
     def __call__(self, exc, stack):
+        print(stack)
         if issubclass(exc.__class__, GrpcException):
             status_code, message = exc.status_code, str(exc)
         elif self._handlers.get(exc.__class__):

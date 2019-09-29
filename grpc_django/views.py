@@ -4,10 +4,9 @@ import traceback
 from django.contrib.auth.models import AnonymousUser
 from django.db.models import QuerySet
 
-from grpc_django.models import ContextUser
-from grpc_django.protobuf_to_dict import dict_to_protobuf
-from grpc_django.settings import settings
-from grpc_django.exceptions import InvalidArgument, NotAuthenticated, ExceptionHandler
+from .models import ContextUser
+from .protobuf_to_dict import dict_to_protobuf
+from .exceptions import InvalidArgument, NotAuthenticated, ExceptionHandler
 
 
 class GenericGrpcView(object):
@@ -31,7 +30,8 @@ class GenericGrpcView(object):
 
     @staticmethod
     def get_user(context):
-        user_json = json.loads(dict(context.invocation_metadata()).get(settings.auth_user_metakey, "{}"))
+        from .settings import settings
+        user_json = json.loads(dict(context.invocation_metadata()).get(settings.auth_user_meta_key, "{}"))
         if user_json is None or len(user_json) == 0:
             return AnonymousUser()
         else:

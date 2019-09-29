@@ -1,26 +1,29 @@
-import importlib
+import re
 import time
 from concurrent import futures
 from contextlib import contextmanager
-from types import MethodType
+from datetime import datetime
+from ipaddress import ip_address
 
 import grpc
+from django.conf import settings as django_settings
 from django.core.management import BaseCommand, CommandError
 
+from grpc_django.settings import settings
 from grpc_django.views import ServerStreamGRPCView
+
+naiveip_re = re.compile(r"""^(?:(?P<addr>(?P<ipv4>\d{1,3}(?:\.\d{1,3}){3}) |):)?(?P<port>\d+)$""", re.X)
 
 
 class Command(BaseCommand):
-    help = "Starts the GRPC server"
+    help = "Starts a GRPC server"
+
+    default_addr = '127.0.0.1'
 
     def add_arguments(self, parser):
         parser.add_argument(
-            "project", nargs=1,
-            help="Django project settings path"
-        )
-        parser.add_argument(
-            "port", nargs="?",
-            help="Optional port number"
+            "addrport", nargs="?",
+            help="Optional port number, or ipaddr:port"
         )
         parser.add_argument(
             "--workers", dest="max_workers",
@@ -38,40 +41,60 @@ class Command(BaseCommand):
         return method
 
     @contextmanager
-    def serve_forever(self, settings, **kwargs):
-        max_workers = kwargs.get("max_workers", settings.workers)
-        server_port = kwargs.get("port", settings.server_port)
+    def serve_forever(self, addr, port, **kwargs):
+        max_workers = kwargs.get("max_workers", 1)
+        self.stdout.write("Performing system checks...\n\n")
+        self.check_migrations()
         server = grpc.server(futures.ThreadPoolExecutor(max_workers=max_workers))
         # Add services to server
+        self.stdout.write("\nAdding GRPC services: {}\n\n".format(', '.join([x.name for x in settings.services])))
         for service in settings.services:
-            self.stdout.write("Adding service {}".format(service.service.__name__))
-            servicer = service.service()
-            # Add methods
-            rpc_calls = importlib.import_module(service.rpc_paths).rpc_calls
-            for rpc_call in rpc_calls:
-                setattr(
-                    servicer,
-                    rpc_call.name,
-                    MethodType(self._get_rpc_method(rpc_call), servicer)
-                )
-            service.servicer(servicer, server)
-        server.add_insecure_port("[::]:{}".format(server_port))
+            servicer = service.load()
+            handler = service.find_server_handler()
+            handler(servicer, server)
+
+        self.stdout.write(datetime.now().strftime('%B %d, %Y - %X'))
+        self.stdout.write(
+            "Django version {version}, using settings {settings}\n"
+            "Starting GRPC server at {addr}:{port}".format(**{
+                'version': self.get_version(),
+                'settings': django_settings.SETTINGS_MODULE,
+                'addr': addr,
+                'port': port
+            })
+        )
+
+        server.add_insecure_port("{}:{}".format(addr, port))
         server.start()
         yield
         server.stop(0)
 
-    def handle(self, *args, **options):
-        project_module = importlib.import_module(".".join([options["project"][0], "grpc"]))
-        project_settings = project_module.settings
-
-        if not options.get("port"):
-            port = project_settings.server_port
-        else:
-            port = options["port"]
+    @staticmethod
+    def get_addrport(value):
+        error_msg = '"{}" is not a valid port number or address:port pair.'.format(value)
+        parts = value.split(':')
+        if len(parts) > 2:
+            raise CommandError(error_msg)
+        if len(parts) == 1:
+            addr = settings.server_port
+            port = parts[0]
             if not port.isdigit():
-                raise CommandError("{} is not a valid port number".format(port))
-        with self.serve_forever(project_settings, port=port):
-            self.stdout.write("Running GRPC server on localhost:{}".format(port))
+                raise CommandError(error_msg)
+        else:
+            addr, port = parts
+            try:
+                ip_address(addr)
+            except ValueError:
+                raise CommandError(error_msg)
+        return addr, port
+
+    def handle(self, *args, **options):
+        # Initialise Settings
+        if not options.get('addrport'):
+            addr, port = self.default_addr, settings.server_port
+        else:
+            addr, port = self.get_addrport(options['addrport'])
+        with self.serve_forever(addr=addr, port=port):
             try:
                 while True:
                     time.sleep(60*60*24)

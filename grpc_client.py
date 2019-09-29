@@ -1,12 +1,12 @@
 import grpc
 import sys
 
-from test_pb2 import GetPayload, Empty
-from test_pb2_grpc import TestServiceStub
+from tests.grpc_codegen.test_pb2 import GetPayload, Empty
+from tests.grpc_codegen.test_pb2_grpc import TestServiceStub
 
 
 def run():
-    channel = grpc.insecure_channel("localhost:8000")
+    channel = grpc.insecure_channel("localhost:55000")
     try:
         grpc.channel_ready_future(channel).result(timeout=10)
     except grpc.FutureTimeoutError:
