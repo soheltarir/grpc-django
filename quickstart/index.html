@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  
+  <link rel="shortcut icon" href="../img/favicon.ico">
+  <title>Quickstart - GRPC Django Framework</title>
+  <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
+
+  <link rel="stylesheet" href="../css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../css/theme_extra.css" type="text/css" />
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css">
+  
+  <script>
+    // Current page data
+    var mkdocs_page_name = "Quickstart";
+    var mkdocs_page_input_path = "quickstart.md";
+    var mkdocs_page_url = null;
+  </script>
+  
+  <script src="../js/jquery-2.1.1.min.js" defer></script>
+  <script src="../js/modernizr-2.8.3.min.js" defer></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script> 
+  
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+      <div class="wy-side-nav-search">
+        <a href=".." class="icon icon-home"> GRPC Django Framework</a>
+        <div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+	<ul class="current">
+	  
+          
+            <li class="toctree-l1">
+		
+    <a class="" href="..">Home</a>
+	    </li>
+          
+            <li class="toctree-l1 current">
+		
+    <a class="current" href="./">Quickstart</a>
+    <ul class="subnav">
+            
+    <li class="toctree-l2"><a href="#quickstart">Quickstart</a></li>
+    
+        <ul>
+        
+            <li><a class="toctree-l3" href="#project-setup">Project Setup</a></li>
+        
+            <li><a class="toctree-l3" href="#settings">Settings</a></li>
+        
+            <li><a class="toctree-l3" href="#generating-the-client-and-server-code">Generating the client and server code</a></li>
+        
+            <li><a class="toctree-l3" href="#serializers">Serializers</a></li>
+        
+            <li><a class="toctree-l3" href="#rpcs">RPCs</a></li>
+        
+            <li><a class="toctree-l3" href="#running-the-server">Running the Server</a></li>
+        
+            <li><a class="toctree-l3" href="#testing-our-service">Testing Our Service</a></li>
+        
+        </ul>
+    
+
+    </ul>
+	    </li>
+          
+        </ul>
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="..">GRPC Django Framework</a>
+      </nav>
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="..">Docs</a> &raquo;</li>
+    
+      
+    
+    <li>Quickstart</li>
+    <li class="wy-breadcrumbs-aside">
+      
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main">
+            <div class="section">
+              
+                <h1 id="quickstart">Quickstart</h1>
+<p>We're going to create a simple service to view the users in the system.</p>
+<h2 id="project-setup">Project Setup</h2>
+<p>Create a new Django project named grpc_tutorial</p>
+<pre><code># Create the project directory
+$ mkdir grpc_tutorial
+$ cd grpc_tutorial
+
+# Create a virtualenv to isolate our package dependencies locally
+$ virtualenv env
+$ source env/bin/activate
+
+# Install the packages into the virtualenv
+$ pip install django
+$ pip install djangorestframework
+$ pip install grpc-django
+
+# Set up a new project with a single application
+$ django-admin startproject config .  # Note the trailing '.' character
+$ python manage.py startapp users
+</code></pre>
+
+<p>The project layout should look like:</p>
+<pre><code>$ pwd
+&lt;some path&gt;/grpc_tutorial
+$ find .
+.
+./grpc_tutorial
+./grpc_tutorial/__init__.py
+./grpc_tutorial/settings.py
+./grpc_tutorial/urls.py
+./grpc_tutorial/wsgi.py
+./users
+./users/migrations
+./users/migrations/__init__.py
+./users/models.py
+./users/__init__.py
+./users/apps.py
+./users/admin.py
+./users/tests.py
+./users/views.py
+./manage.py
+</code></pre>
+
+<p>Now sync your database for the first time:</p>
+<pre><code>python manage.py migrate
+</code></pre>
+
+<p>Create the Protocol Buffer file <code>users/user.proto</code> and define the GRPC service:</p>
+<pre><code class="proto">syntax = &quot;proto3&quot;;
+
+package user;
+
+message User {
+    int64 id = 1;
+    string username = 2;
+    string first_name = 3;
+    string last_name = 4;
+}
+
+message GetPayload {
+    int64 id = 1;
+}
+
+message Empty {}
+
+service UserService {
+    rpc GetUser (GetPayload) returns (User);
+    rpc ListUsers (Empty) returns (stream User);
+}
+</code></pre>
+
+<h2 id="settings">Settings</h2>
+<p>Add <code>'grpc_django'</code> to <code>INSTALLED_APPS</code>. The settings module will be in <code>grpc_tutorial/settings.py</code>.</p>
+<pre><code>INSTALLED_APPS = (
+    ...
+    'grpc_django',
+)
+</code></pre>
+
+<p>Add <code>GRPC_SETTINGS</code> in the settings module</p>
+<pre><code class="python">from grpc_django import GRPCSettings, GRPCService
+
+
+GRPC_SETTINGS = GRPCSettings(
+    services=[GRPCService(
+        # Name of the service as defined in .proto definition
+        name='UserService',
+        # The package name as defined in .proto definition (in our case it should look like `package user;`
+        package_name='user',
+        # The path (relative to `manage.py`) to the .proto definition 
+        proto_path='users/user.proto',
+        # This will be the list of RPCs similar to `urls.py` definition in Django
+        rpc_conf='users.rpc'
+    )]
+)
+
+</code></pre>
+
+<h2 id="generating-the-client-and-server-code">Generating the client and server code</h2>
+<p>Next you need to generate the gRPC client and server interfaces from your <code>users/user.proto</code> service
+definition.</p>
+<p>First, install the <code>grpcio-tools</code> package:</p>
+<pre><code>$ pip install grpcio-tools
+</code></pre>
+
+<p>Use the following Django management command to generate the Python code:</p>
+<pre><code>$ python manage.py generate_grpc_stubs
+</code></pre>
+
+<p>The above command will generate a python package <code>grpc_codegen</code> containing the following modules:</p>
+<pre><code>./manage.py
+...
+./grpc_codegen
+./grpc_codegen/__init__.py
+./grpc_codegen/user_pb2.py
+./grpc_codegen/user_pb2_grpc.py
+...
+</code></pre>
+
+<h2 id="serializers">Serializers</h2>
+<p>Now we're going to define some serializers using Django REST framework. Let's create a new module
+named <code>users/serializers.py</code> that we'll be used for data representations.</p>
+<pre><code class="python">from django.contrib.auth.models import User
+from rest_framework.serializers import ModelSerializer
+
+
+class UserSerializer(ModelSerializer):
+    class Meta:
+        model = User
+        fields = ('id', 'first_name', 'last_name', 'username')
+
+</code></pre>
+
+<p>Please refer <a href="https://www.django-rest-framework.org/api-guide/serializers/">DjangoRESTFramework - Serializers</a> for
+detailed usage of serializers</p>
+<h2 id="rpcs">RPCs</h2>
+<p>We are gonna write some RPCs in <code>users/views.py</code> which should look familiar to Django Views 
+or Django REST Framework Views</p>
+<pre><code class="python">from grpc_django.views import RetrieveGRPCView, ServerStreamGRPCView
+from grpc_codegen.user_pb2 import User as UserProto
+from django.contrib.auth.models import User
+from .serializers import UserSerializer
+
+class GetUser(RetrieveGRPCView):
+    &quot;&quot;&quot;
+    RPC to view a single user by ID
+    &quot;&quot;&quot;
+    queryset = User.objects.all()
+    response_proto = UserProto
+    serializer_class = UserSerializer
+
+
+class ListUsers(ServerStreamGRPCView):
+    &quot;&quot;&quot;
+    RPC to list all users
+    &quot;&quot;&quot;
+    queryset = User.objects.all()
+    response_proto = UserProto
+    serializer_class = UserSerializer
+</code></pre>
+
+<p>Similar to <strong>urls.py</strong> in Django, where we define API endpoints and link them to respective views,
+in GRPC Django we are gonna link views to corresponding RPCs as defined in the <code>users/user.proto</code> file.
+Create a module <code>users/rpcs.py</code> with the following:</p>
+<pre><code class="python">from grpc_django.interfaces import rpc
+from .views import GetUser, ListUsers
+
+
+rpcs = [
+    rpc(name='GetUser', view=GetUser),
+    rpc(name='ListUsers', view=ListUsers)
+]
+</code></pre>
+
+<h2 id="running-the-server">Running the Server</h2>
+<p>Finally you can run your gRPC server by the following command:</p>
+<pre><code>$ python manage.py run_grpc_server
+</code></pre>
+
+<p>This will run your gRPC server on <code>127.0.0.1:55000</code></p>
+<h2 id="testing-our-service">Testing Our Service</h2>
+<p>To test our gRPC service we need to create a client that would use the generated client code to
+access the RPCs. Create a python module <code>test_grpc_client.py</code>, and write the following sample code in it:</p>
+<pre><code class="python">import grpc
+import sys
+
+from grpc_codegen.user_pb2 import GetPayload, Empty
+from grpc_codegen.user_pb2_grpc import UserServiceStub
+
+
+def run():
+    # Create a connection with the server
+    channel = grpc.insecure_channel(&quot;localhost:55000&quot;)
+    try:
+        grpc.channel_ready_future(channel).result(timeout=10)
+    except grpc.FutureTimeoutError:
+        sys.exit('Error connecting to server')
+    else:
+        stub = UserServiceStub(channel)
+
+    # Test the GetUser RPC
+    print(&quot;Calling GetUser with id = 1&quot;)
+    response = stub.GetUser(GetPayload(id=1))
+    if response:
+        print(&quot;Received response for GetUser: {}&quot;.format(response))
+
+    # Test the ListUsers RPC
+    print(&quot;Calling ListUsers&quot;)
+    response = stub.ListUsers(Empty())
+    for _ in response:
+        print(_)
+
+    # Close the connection
+    channel.close()
+
+
+if __name__ == &quot;__main__&quot;:
+    run()
+
+</code></pre>
+
+<p>Run the above code using <code>python test_grpc_client.py</code></p>
+              
+            </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+      
+        <a href=".." class="btn btn-neutral" title="Home"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+    
+  </div>
+
+  Built with <a href="http://www.mkdocs.org">MkDocs</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+      
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" style="cursor: pointer">
+    <span class="rst-current-version" data-toggle="rst-current-version">
+      
+      
+        <span><a href=".." style="color: #fcfcfc;">&laquo; Previous</a></span>
+      
+      
+    </span>
+</div>
+    <script>var base_url = '..';</script>
+    <script src="../js/theme.js" defer></script>
+      <script src="../search/main.js" defer></script>
+
+</body>
+</html>
