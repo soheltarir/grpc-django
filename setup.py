@@ -14,8 +14,9 @@ version = "1.0.0"
 setup(
     name="grpc-django",
     version=version,
-    packages=find_packages(exclude=["tests*", "manage.py", "docs", ".circleci"]),
+    packages=find_packages(exclude=["tests*", "manage.py", "docs"]),
     include_package_data=True,
+    python_requires='3.5.2',
     install_requires=[
         "Django >= 1.9",
         "grpcio",

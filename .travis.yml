@@ -1,0 +1,16 @@
+language: python
+python:
+  - "3.5"
+  - "3.6"
+  - "3.7"
+  # does not have headers provided, please ask https://launchpad.net/~pypy/+archive/ppa
+  # maintainers to fix their pypy-dev package.
+  - "pypy"
+# command to run tests
+script:
+  - coverage run --source=grpc_django manage.py test
+before_install:
+  - pip install -r requirements.txt
+  - pip install coveralls
+after_success:
+  coveralls
