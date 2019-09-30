@@ -1,14 +1,13 @@
 import re
 import time
-from concurrent import futures
 from contextlib import contextmanager
 from datetime import datetime
 from ipaddress import ip_address
 
-import grpc
 from django.conf import settings as django_settings
 from django.core.management import BaseCommand, CommandError
 
+from grpc_django.server import init_server
 from grpc_django.settings import settings
 from grpc_django.views import ServerStreamGRPCView
 
@@ -42,17 +41,9 @@ class Command(BaseCommand):
 
     @contextmanager
     def serve_forever(self, addr, port, **kwargs):
-        max_workers = kwargs.get("max_workers", 1)
         self.stdout.write("Performing system checks...\n\n")
         self.check_migrations()
-        server = grpc.server(futures.ThreadPoolExecutor(max_workers=max_workers))
-        # Add services to server
-        self.stdout.write("\nAdding GRPC services: {}\n\n".format(', '.join([x.name for x in settings.services])))
-        for service in settings.services:
-            servicer = service.load()
-            handler = service.find_server_handler()
-            handler(servicer, server)
-
+        server = init_server(addr, port, max_workers=kwargs.get('max_workers', 1), stdout=self.stdout)
         self.stdout.write(datetime.now().strftime('%B %d, %Y - %X'))
         self.stdout.write(
             "Django version {version}, using settings {settings}\n"
@@ -63,8 +54,6 @@ class Command(BaseCommand):
                 'port': port
             })
         )
-
-        server.add_insecure_port("{}:{}".format(addr, port))
         server.start()
         yield
         server.stop(0)

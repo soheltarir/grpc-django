@@ -1,8 +1,5 @@
-import logging
 from collections import namedtuple
 from typing import List
-
-logger = logging.getLogger(__name__)
 
 
 rpc = namedtuple('rpc', ['name', 'view'])

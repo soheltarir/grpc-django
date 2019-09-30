@@ -49,9 +49,9 @@ class GRPCService:
             setattr(servicer, _rpc.name, MethodType(self._get_rpc_method(_rpc), servicer))
             declared_methods.remove(_rpc.name)
 
-            # Show warning if a declared RPC is not implemented
-            if len(declared_methods):
-                print("*WARNING* Missing implementations for the RPCs: {}\n\n".format(declared_methods))
+        # Show warning if a declared RPC is not implemented
+        if len(declared_methods):
+            print("*WARNING* Missing implementations for the RPCs: {}\n\n".format(declared_methods))
         return servicer
 
     @staticmethod

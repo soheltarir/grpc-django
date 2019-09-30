@@ -6,8 +6,8 @@ from tests.grpc_codegen.test_pb2 import User
 
 USERS = [{
             "id": 1,
-            "name": "Clay Jenson",
-            "username": "clay.jenson"
+            "name": "Bruce Wayne",
+            "username": "bruce.wayne"
         }, {
             "id": 2,
             "name": "Clary Fairchild",
