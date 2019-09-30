@@ -9,12 +9,12 @@ except LookupError:
 
 from setuptools import find_packages, setup
 
-version = "0.3dev"
+version = "1.0.0"
 
 setup(
     name="grpc-django",
     version=version,
-    packages=find_packages(exclude=["tests*", "manage.py", "test_pb2.py", "test_pb2_grpc.py", "grpc_client.py"]),
+    packages=find_packages(exclude=["tests*", "manage.py", "docs", ".circleci"]),
     include_package_data=True,
     install_requires=[
         "Django >= 1.9",
