@@ -1,8 +1,8 @@
 from django.core.exceptions import ObjectDoesNotExist
 
-from grpc_django.rpcs import rpc
+from grpc_django.interfaces import rpc
 from grpc_django.views import RetrieveGRPCView, ServerStreamGRPCView
-from test_pb2 import User
+from tests.grpc_codegen.test_pb2 import User
 
 USERS = [{
             "id": 1,
@@ -47,7 +47,7 @@ class ListUsers(ServerStreamGRPCView):
         return USERS
 
 
-rpc_calls = [
+rpcs = [
     rpc("GetUser", GetUser),
     rpc("ListUsers", ListUsers)
 ]

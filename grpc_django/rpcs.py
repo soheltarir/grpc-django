@@ -1,4 +1,3 @@
-class rpc:
-    def __init__(self, name, cls):
-        self.name = name
-        self.cls = cls
+from collections import namedtuple
+
+rpc = namedtuple('rpc', ['name', 'view'])
