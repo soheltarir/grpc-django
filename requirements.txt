@@ -1,6 +1,6 @@
 coverage==4.5.4
 Django==2.2.5
-djangorestframework==3.10.3
+djangorestframework==3.11.2
 grpcio==1.24.0
 grpcio-tools==1.24.0
 mkdocs==1.0.4
